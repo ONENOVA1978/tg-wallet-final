@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONEX Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes successCheck {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .bounce-effect:active {
+            animation: bounce 0.3s ease;
+        }
+        
+        .glassmorphism {
+            background: rgba(46, 46, 70, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .success-check {
+            animation: successCheck 0.5s ease-out forwards;
+        }
+        
+        .tab-active {
+            position: relative;
+        }
+        
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #6C5CE7;
+            border-radius: 3px;
+        }
+        
+        .coin-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .transaction-card {
+            transition: all 0.3s ease;
+        }
+        
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #6C5CE7;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-[#1E1E2D] text-white min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-md">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#00CEFF] flex items-center justify-center mr-3">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h1 class="text-xl font-bold">ONEX Wallet</h1>
+            </div>
+            <button id="themeToggle" class="w-10 h-10 rounded-full glassmorphism flex items-center justify-center">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <!-- Main Content (Dynamic) -->
+        <div id="appContent">
+            <!-- Dashboard will be loaded here initially -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-[#2D2D42] py-3 px-6 flex justify-around items-center shadow-lg">
+            <button onclick="loadScreen('dashboard')" class="flex flex-col items-center text-[#6C5CE7] tab-active">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs mt-1">Home</span>
+            </button>
+            <button onclick="loadScreen('send')" class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-paper-plane text-lg"></i>
+                <span class="text-xs mt-1">Send</span>
+            </button>
+            <button onclick="loadScreen('receive')" class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-qrcode text-lg"></i>
+                <span class="text-xs mt-1">Receive</span>
+            </button>
+            <button onclick="loadScreen('history')" class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-history text-lg"></i>
+                <span class="text-xs mt-1">History</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Templates -->
+    <template id="dashboardTemplate">
+        <div class="fade-in">
+            <!-- Balance Card -->
+            <div class="glassmorphism rounded-2xl p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-gray-400">Total Balance</h2>
+                    <button class="text-xs bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7] px-3 py-1 rounded-full">USD</button>
+                </div>
+                <h1 class="text-3xl font-bold mb-1">$2,458.90</h1>
+                <p class="text-sm text-green-400 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"></i> 5.2% from last week
+                </p>
+                
+                <!-- Balance Chart -->
+                <div class="mt-6 h-40">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <button onclick="loadScreen('send')" class="bounce-effect flex flex-col items-center justify-center glassmorphism py-4 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-[#6C5CE7] bg-opacity-20 flex items-center justify-center mb-2">
+                        <i class="fas fa-paper-plane text-[#6C5CE7]"></i>
+                    </div>
+                    <span class="text-xs">Send</span>
+                </button>
+                <button onclick="loadScreen('receive')" class="bounce-effect flex flex-col items-center justify-center glassmorphism py-4 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-[#00CEFF] bg-opacity-20 flex items-center justify-center mb-2">
+                        <i class="fas fa-qrcode text-[#00CEFF]"></i>
+                    </div>
+                    <span class="text-xs">Receive</span>
+                </button>
+                <button onclick="loadScreen('exchange')" class="bounce-effect flex flex-col items-center justify-center glassmorphism py-4 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-[#FF7675] bg-opacity-20 flex items-center justify-center mb-2">
+                        <i class="fas fa-exchange-alt text-[#FF7675]"></i>
+                    </div>
+                    <span class="text-xs">Exchange</span>
+                </button>
+                <button onclick="loadScreen('history')" class="bounce-effect flex flex-col items-center justify-center glassmorphism py-4 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-[#00CEFF] bg-opacity-20 flex items-center justify-center mb-2">
+                        <i class="fas fa-history text-[#00CEFF]"></i>
+                    </div>
+                    <span class="text-xs">History</span>
+                </button>
+            </div>
+            
+            <!-- Assets -->
+            <h2 class="text-lg font-semibold mb-4">Your Assets</h2>
+            <div class="space-y-3 mb-20">
+                <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                    <div class="flex items-center">
+                        <div class="coin-icon bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7]">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="font-medium">Bitcoin</h3>
+                            <p class="text-xs text-gray-400">BTC</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">0.042 BTC</p>
+                        <p class="text-xs text-gray-400">$1,234.56</p>
+                    </div>
+                </div>
+                
+                <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                    <div class="flex items-center">
+                        <div class="coin-icon bg-[#00CEFF] bg-opacity-20 text-[#00CEFF]">
+                            <i class="fab fa-ethereum"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="font-medium">Ethereum</h3>
+                            <p class="text-xs text-gray-400">ETH</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">1.24 ETH</p>
+                        <p class="text-xs text-gray-400">$876.54</p>
+                    </div>
+                </div>
+                
+                <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                    <div class="flex items-center">
+                        <div class="coin-icon bg-[#FF7675] bg-opacity-20 text-[#FF7675]">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="font-medium">Tether</h3>
+                            <p class="text-xs text-gray-400">USDT</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">250.00 USDT</p>
+                        <p class="text-xs text-gray-400">$250.00</p>
+                    </div>
+                </div>
+                
+                <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                    <div class="flex items-center">
+                        <div class="coin-icon bg-[#00CEFF] bg-opacity-20 text-[#00CEFF]">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="font-medium">Toncoin</h3>
+                            <p class="text-xs text-gray-400">TON</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">98.50 TON</p>
+                        <p class="text-xs text-gray-400">$98.50</p>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template id="sendTemplate">
+            <div class="fade-in mb-20">
+                <h2 class="text-lg font-semibold mb-6">Send Crypto</h2>
+                
+                <!-- Recipient -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">Recipient</label>
+                    <div class="flex items-center">
+                        <input type="text" placeholder="Username or wallet address" class="bg-transparent w-full outline-none placeholder-gray-600">
+                        <button class="ml-2 w-10 h-10 rounded-full bg-[#6C5CE7] bg-opacity-20 flex items-center justify-center">
+                            <i class="fas fa-user-plus text-[#6C5CE7]"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Asset Selection -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">Select Asset</label>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="coin-icon bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7]">
+                                <i class="fab fa-bitcoin"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="font-medium">Bitcoin</h3>
+                                <p class="text-xs text-gray-400">Balance: 0.042 BTC</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </div>
+                </div>
+                
+                <!-- Amount -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm text-gray-400">Amount</label>
+                        <button class="text-xs bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7] px-2 py-1 rounded">MAX</button>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="number" placeholder="0.00" class="bg-transparent w-full outline-none text-xl font-medium">
+                        <span class="text-gray-400 ml-2">BTC</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">≈ $0.00</p>
+                </div>
+                
+                <!-- Network Fee -->
+                <div class="glassmorphism rounded-xl p-4 mb-6">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-sm text-gray-400">Network Fee</label>
+                        <div class="text-right">
+                            <p class="font-medium">0.0001 BTC</p>
+                            <p class="text-xs text-gray-400">≈ $2.34</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Send Button -->
+                <button onclick="showSuccess()" class="w-full bg-gradient-to-r from-[#6C5CE7] to-[#00CEFF] py-4 rounded-xl font-medium bounce-effect">
+                    Send Now
+                </button>
+            </div>
+        </template>
+
+        <template id="receiveTemplate">
+            <div class="fade-in mb-20">
+                <h2 class="text-lg font-semibold mb-6">Receive Crypto</h2>
+                
+                <!-- QR Code -->
+                <div class="glassmorphism rounded-xl p-6 mb-6 flex flex-col items-center">
+                    <div class="qr-code mb-4">
+                        <!-- This would be a real QR code in production -->
+                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-qrcode text-4xl text-gray-600"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-2">Scan to receive payment</p>
+                    <button onclick="copyAddress()" class="text-[#6C5CE7] flex items-center">
+                        <span class="mr-2">Copy Address</span>
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+                
+                <!-- Address -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">Your Address</label>
+                    <div class="flex items-center justify-between">
+                        <div class="truncate text-sm font-mono">TB1q2w3e4r5t6y7u8i9o0pASDFGHJKLZXCVBNM</div>
+                        <button onclick="copyAddress()" class="ml-2 w-8 h-8 rounded-full bg-[#6C5CE7] bg-opacity-20 flex items-center justify-center">
+                            <i class="far fa-copy text-[#6C5CE7] text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Asset Selection -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">Select Asset</label>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="coin-icon bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7]">
+                                <i class="fab fa-bitcoin"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="font-medium">Bitcoin</h3>
+                                <p class="text-xs text-gray-400">BTC</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </div>
+                </div>
+                
+                <!-- Share Button -->
+                <button onclick="shareAddress()" class="w-full bg-gradient-to-r from-[#6C5CE7] to-[#00CEFF] py-4 rounded-xl font-medium bounce-effect mt-4">
+                    Share Address
+                </button>
+            </div>
+        </template>
+
+        <template id="exchangeTemplate">
+            <div class="fade-in mb-20">
+                <h2 class="text-lg font-semibold mb-6">Exchange</h2>
+                
+                <!-- From -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">From</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <input type="number" placeholder="0.00" class="bg-transparent w-full outline-none text-xl font-medium">
+                        <div class="flex items-center ml-4">
+                            <div class="coin-icon bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7]">
+                                <i class="fab fa-bitcoin"></i>
+                            </div>
+                            <span class="ml-2">BTC</span>
+                            <i class="fas fa-chevron-down text-gray-500 ml-2"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400">Balance: 0.042 BTC</p>
+                </div>
+                
+                <!-- Swap Button -->
+                <div class="flex justify-center my-2">
+                    <button onclick="swapCurrencies()" class="w-10 h-10 rounded-full bg-[#6C5CE7] flex items-center justify-center bounce-effect">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                </div>
+                
+                <!-- To -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">To</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <input type="number" placeholder="0.00" class="bg-transparent w-full outline-none text-xl font-medium">
+                        <div class="flex items-center ml-4">
+                            <div class="coin-icon bg-[#00CEFF] bg-opacity-20 text-[#00CEFF]">
+                                <i class="fab fa-ethereum"></i>
+                            </div>
+                            <span class="ml-2">ETH</span>
+                            <i class="fas fa-chevron-down text-gray-500 ml-2"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400">Balance: 1.24 ETH</p>
+                </div>
+                
+                <!-- Exchange Rate -->
+                <div class="glassmorphism rounded-xl p-4 mb-6">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-sm text-gray-400">Exchange Rate</label>
+                        <div class="text-right">
+                            <p class="font-medium">1 BTC = 14.32 ETH</p>
+                            <p class="text-xs text-gray-400">Fee: 0.5%</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Exchange Button -->
+                <button onclick="showSuccess()" class="w-full bg-gradient-to-r from-[#6C5CE7] to-[#00CEFF] py-4 rounded-xl font-medium bounce-effect">
+                    Exchange Now
+                </button>
+            </div>
+        </template>
+
+        <template id="historyTemplate">
+            <div class="fade-in mb-20">
+                <h2 class="text-lg font-semibold mb-6">Transaction History</h2>
+                
+                <!-- Filters -->
+                <div class="glassmorphism rounded-xl p-4 mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-sm text-gray-400">Filter by:</label>
+                        <button class="text-xs bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7] px-2 py-1 rounded">Clear</button>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="text-xs bg-[#6C5CE7] bg-opacity-20 text-[#6C5CE7] px-3 py-1 rounded-full">All</button>
+                        <button class="text-xs bg-gray-700 bg-opacity-50 text-gray-400 px-3 py-1 rounded-full">Sent</button>
+                        <button class="text-xs bg-gray-700 bg-opacity-50 text-gray-400 px-3 py-1 rounded-full">Received</button>
+                        <button class="text-xs bg-gray-700 bg-opacity-50 text-gray-400 px-3 py-1 rounded-full">Exchange</button>
+                    </div>
+                </div>
+                
+                <!-- Transactions List -->
+                <div class="space-y-3">
+                    <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-500 bg-opacity-20 flex items-center justify-center mr-3">
+                                <i class="fas fa-arrow-down text-green-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Received BTC</h3>
+                                <p class="text-xs text-gray-400">Today, 10:42 AM</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium text-green-500">+0.005 BTC</p>
+                            <p class="text-xs text-gray-400">$145.23</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-[#FF7675] bg-opacity-20 flex items-center justify-center mr-3">
+                                <i class="fas fa-arrow-up text-[#FF7675]"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Sent USDT</h3>
+                                <p class="text-xs text-gray-400">Yesterday, 4:15 PM</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium text-[#FF7675]">-50.00 USDT</p>
+                            <p class="text-xs text-gray-400">$50.00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-[#00CEFF] bg-opacity-20 flex items-center justify-center mr-3">
+                                <i class="fas fa-exchange-alt text-[#00CEFF]"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">BTC to ETH</h3>
+                                <p class="text-xs text-gray-400">May 12, 9:30 AM</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium">0.01 BTC → 0.14 ETH</p>
+                            <p class="text-xs text-gray-400">$290.46</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-500 bg-opacity-20 flex items-center justify-center mr-3">
+                                <i class="fas fa-arrow-down text-green-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Received TON</h3>
+                                <p class="text-xs text-gray-400">May 10, 2:20 PM</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium text-green-500">+25.00 TON</p>
+                            <p class="text-xs text-gray-400">$25.00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glassmorphism rounded-xl p-4 flex justify-between items-center transaction-card">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-[#FF7675] bg-opacity-20 flex items-center justify-center mr-3">
+                                <i class="fas fa-arrow-up text-[#FF7675]"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Sent BTC</h3>
+                                <p class="text-xs text-gray-400">May 8, 11:05 AM</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium text-[#FF7675]">-0.008 BTC</p>
+                            <p class="text-xs text-gray-400">$232.37</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template id="successTemplate">
+            <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                <div class="glassmorphism rounded-2xl p-8 max-w-xs w-full text-center">
+                    <div class="w-20 h-20 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-check text-green-500 text-3xl success-check"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Success!</h2>
+                    <p class="text-gray-400 mb-6">Your transaction has been completed successfully.</p>
+                    <button onclick="loadScreen('dashboard')" class="w-full bg-gradient-to-r from-[#6C5CE7] to-[#00CEFF] py-3 rounded-xl font-medium bounce-effect">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </template>
+
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Set theme based on Telegram
+        if (tg.colorScheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Load initial screen
+        document.addEventListener('DOMContentLoaded', function() {
+            loadScreen('dashboard');
+            initChart();
+        });
+        
+        // Screen loader
+        function loadScreen(screen) {
+            const content = document.getElementById('appContent');
+            let template;
+            
+            switch(screen) {
+                case 'dashboard':
+                    template = document.getElementById('dashboardTemplate');
+                    break;
+                case 'send':
+                    template = document.getElementById('sendTemplate');
+                    break;
+                case 'receive':
+                    template = document.getElementById('receiveTemplate');
+                    break;
+                case 'exchange':
+                    template = document.getElementById('exchangeTemplate');
+                    break;
+                case 'history':
+                    template = document.getElementById('historyTemplate');
+                    break;
+            }
+            
+            content.innerHTML = '';
+            content.appendChild(template.content.cloneNode(true));
+            
+            // Update active tab
+            updateActiveTab(screen);
+        }
+        
+        // Update active tab in navigation
+        function updateActiveTab(screen) {
+            const navItems = document.querySelectorAll('nav button');
+            navItems.forEach(item => {
+                item.classList.remove('text-[#6C5CE7]', 'tab-active');
+                item.classList.add('text-gray-400');
+                
+                const icon = item.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('text-[#6C5CE7]');
+                    icon.classList.add('text-gray-400');
+                }
+            });
+            
+            let activeIndex;
+            switch(screen) {
+                case 'dashboard': activeIndex = 0; break;
+                case 'send': activeIndex = 1; break;
+                case 'receive': activeIndex = 2; break;
+                case 'history': activeIndex = 3; break;
+                default: return;
+            }
+            
+            const activeItem = navItems[activeIndex];
+            activeItem.classList.add('text-[#6C5CE7]', 'tab-active');
+            activeItem.classList.remove('text-gray-400');
+            
+            const activeIcon = activeItem.querySelector('i');
+            if (activeIcon) {
+                activeIcon.classList.add('text-[#6C5CE7]');
+                activeIcon.classList.remove('text-gray-400');
+            }
+        }
+        
+        // Initialize balance chart
+        function initChart() {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        data: [1200, 1900, 1700, 2100, 2300, 2458],
+                        borderColor: '#6C5CE7',
+                        backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Show success modal
+        function showSuccess() {
+            const modal = document.createElement('div');
+            const template = document.getElementById('successTemplate');
+            modal.appendChild(template.content.cloneNode(true));
+            document.body.appendChild(modal);
+        }
+        
+        // Copy address to clipboard
+        function copyAddress() {
+            navigator.clipboard.writeText('TB1q2w3e4r5t6y7u8i9o0pASDFGHJKLZXCVBNM');
+            
+            // Show toast notification
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#6C5CE7] text-white px-4 py-2 rounded-lg text-sm';
+            toast.textContent = 'Address copied to clipboard!';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+        
+        // Share address via Telegram
+        function shareAddress() {
+            if (tg && tg.share) {
+                tg.share({
+                    title: 'My ONEX Wallet Address',
+                    text: 'Here is my Bitcoin address: TB1q2w3e4r5t6y7u8i9o0pASDFGHJKLZXCVBNM',
+                    url: 'https://onexwallet.com'
+                });
+            } else {
+                // Fallback for non-Telegram environments
+                copyAddress();
+            }
+        }
+        
+        // Swap currencies in exchange
+        function swapCurrencies() {
+            const fromInput = document.querySelector('#exchangeTemplate input');
+            const toInput = document.querySelectorAll('#exchangeTemplate input')[1];
+            
+            const tempValue = fromInput.value;
+            fromInput.value = toInput.value;
+            toInput.value = tempValue;
+            
+            // In a real app, we would also swap the currency types and recalculate
+        }
+        
+        // Theme toggle (for demo purposes)
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            
+            const icon = this.querySelector('i');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        });
+    </script>
+</body>
+</html>
