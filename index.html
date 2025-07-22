@@ -2,485 +2,305 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ONEX Wallet — Ваш цифровой кошелек</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>ONEX Wallet - MiniApp</title>
 <style>
-  /* ====================================================
-     Reset и базовые стили
-  ==================================================== */
+  /* Минималистичный сброс */
   * {
-    box-sizing: border-box;
-    margin: 0; padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   }
  
-  html, body {
+  body, html {
     height: 100%;
     background: #0d0f14;
     color: #e0e0e0;
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-y: auto;
   }
  
-  a {
-    color: #1db954;
-    text-decoration: none;
-    transition: color 0.3s ease;
-  }
- 
-  a:hover {
-    color: #1ed760;
-  }
- 
-  /* ====================================================
-     Контейнер
-  ==================================================== */
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 30px;
-  }
- 
-  /* ====================================================
-     Заголовок
-  ==================================================== */
-  header {
+  #app {
+    max-width: 100%;
+    padding: 16px 16px 80px; /* padding снизу для кнопки поддержки */
+    box-sizing: border-box;
+    min-height: 100vh;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #222831;
+    flex-direction: column;
   }
  
-  header h1 {
-    font-weight: 700;
-    font-size: 2.2rem;
-    letter-spacing: 3px;
-    color: #1ed760;
-  }
- 
-  /* ====================================================
-     Навигация вкладок
-  ==================================================== */
   nav {
-    margin-top: 30px;
     display: flex;
-    justify-content: center;
-    gap: 40px;
+    justify-content: space-around;
+    margin-bottom: 12px;
     border-bottom: 1px solid #222831;
   }
  
   nav button {
+    flex-grow: 1;
+    padding: 12px 0;
     background: none;
     border: none;
-    color: #a2a2a2;
-    font-size: 1.1rem;
-    padding: 15px 20px;
-    cursor: pointer;
-    transition: color 0.25s ease, border-bottom 0.25s ease;
+    color: #888;
+    font-weight: 600;
+    font-size: 14px;
     border-bottom: 3px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    user-select: none;
   }
  
   nav button.active {
     color: #1ed760;
     border-bottom: 3px solid #1ed760;
-    font-weight: 600;
   }
  
-  nav button:hover:not(.active) {
-    color: #3adb76;
+  nav button:focus {
+    outline: none;
+    color: #1ed760;
   }
  
-  /* ====================================================
-     Основной контент
-  ==================================================== */
-  main {
-    margin-top: 30px;
-    min-height: 500px;
+  .tab-content {
+    flex-grow: 1;
+    overflow-y: auto;
   }
  
-  /* ====================================================
-     Карточка баланса
-  ==================================================== */
+  /* Баланс */
   .balance-card {
     background: #121417;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow:
-      0 0 8px rgba(30, 215, 96, 0.3),
-      inset 0 0 15px rgba(30, 215, 96, 0.2);
-    max-width: 450px;
-    margin: 0 auto 40px auto;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
     text-align: center;
+    box-shadow: inset 0 0 8px #1ed76033;
   }
  
   .balance-card h2 {
-    font-size: 1.6rem;
-    margin-bottom: 12px;
+    font-size: 18px;
+    margin-bottom: 8px;
     color: #1ed760;
   }
  
   .balance-amount {
-    font-size: 3rem;
+    font-size: 36px;
     font-weight: 700;
-    margin-bottom: 8px;
+    letter-spacing: 1.5px;
   }
  
   .balance-currency {
-    font-size: 1.2rem;
-    color: #a2a2a2;
+    font-size: 14px;
+    color: #777;
   }
  
-  /* ====================================================
-     Кнопки действий
-  ==================================================== */
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    margin-bottom: 50px;
-  }
- 
-  .action-buttons button {
-    background: #1ed760;
-    border: none;
-    color: #0d0f14;
-    font-weight: 600;
-    padding: 15px 30px;
-    font-size: 1.1rem;
-    border-radius: 25px;
-    cursor: pointer;
-    box-shadow:
-      0 6px 10px rgba(30, 215, 96, 0.5);
-    transition: background 0.3s ease;
-  }
- 
-  .action-buttons button:hover {
-    background: #17c554;
-  }
- 
-  /* ====================================================
-     График баланса
-  ==================================================== */
+  /* График */
   .chart-container {
-    max-width: 700px;
-    margin: 0 auto;
-    height: 320px;
+    height: 220px;
+    width: 100%;
+    margin-bottom: 24px;
   }
  
   canvas {
     width: 100% !important;
-    height: 320px !important;
-    border-radius: 12px;
-    background: #0d0f14;
-    box-shadow:
-      0 0 20px rgba(30, 215, 96, 0.3);
+    height: 220px !important;
   }
  
-  /* ====================================================
-     Стили формы отправки / пополнения
-  ==================================================== */
+  /* Формы */
   form {
     background: #121417;
-    max-width: 480px;
-    margin: 0 auto 60px auto;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow:
-      0 0 12px rgba(30, 215, 96, 0.2);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: inset 0 0 8px #1ed76033;
   }
  
   form label {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 6px;
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #a2a2a2;
   }
  
   form input[type="text"],
   form input[type="number"] {
     width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 20px;
-    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
     border: none;
     background: #0d0f14;
-    color: #e0e0e0;
-    font-size: 1rem;
-    box-shadow:
-      inset 0 0 6px rgba(30, 215, 96, 0.3);
-    transition: box-shadow 0.3s ease;
+    color: #eee;
+    font-size: 14px;
+  }
+ 
+  form input[type="text"]::placeholder,
+  form input[type="number"]::placeholder {
+    color: #666;
   }
  
   form input[type="text"]:focus,
   form input[type="number"]:focus {
     outline: none;
-    box-shadow:
-      0 0 12px #1ed760;
+    box-shadow: 0 0 6px #1ed760cc;
     background: #121417;
   }
  
   form button[type="submit"] {
-    background: #1ed760;
-    border: none;
-    color: #0d0f14;
-    padding: 14px 0;
     width: 100%;
-    border-radius: 25px;
-    font-size: 1.2rem;
+    padding: 12px 0;
+    background: #1ed760;
+    color: #0d0f14;
     font-weight: 700;
+    font-size: 16px;
+    border-radius: 24px;
+    border: none;
     cursor: pointer;
-    box-shadow:
-      0 6px 12px rgba(30, 215, 96, 0.6);
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
+    user-select: none;
   }
  
-  form button[type="submit"]:hover {
+  form button[type="submit"]:hover,
+  form button[type="submit"]:focus {
     background: #17c554;
+    outline: none;
   }
  
-  /* ====================================================
-     История транзакций
-  ==================================================== */
+  /* История */
   .transaction-history {
-    max-width: 700px;
-    margin: 0 auto 60px auto;
-  }
- 
-  .transaction-history h3 {
-    margin-bottom: 20px;
-    color: #1ed760;
-    font-weight: 700;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #1ed760;
-    padding-bottom: 10px;
+    max-height: 300px;
+    overflow-y: auto;
   }
  
   .transaction-list {
     list-style: none;
-    max-height: 300px;
-    overflow-y: auto;
-    border-radius: 10px;
-    background: #121417;
-    box-shadow:
-      inset 0 0 10px rgba(30, 215, 96, 0.2);
-    padding: 0;
   }
  
   .transaction-list li {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 20px;
-    border-bottom: 1px solid #1e1f25;
-    font-size: 0.95rem;
+    padding: 10px 8px;
+    border-bottom: 1px solid #222831;
+    font-size: 13px;
+    color: #ccc;
   }
  
-  .transaction-list li:last-child {
-    border-bottom: none;
-  }
- 
-  .transaction-type {
+  .transaction-list li .transaction-type {
     font-weight: 700;
     color: #1ed760;
   }
  
-  .transaction-amount {
-    font-weight: 700;
+  .transaction-list li small {
+    color: #666;
+    font-size: 11px;
   }
  
-  .transaction-date {
-    color: #777;
-    font-style: italic;
-  }
- 
-  /* ====================================================
-     One Club блок
-  ==================================================== */
+  /* One Club */
   .one-club {
-    background: linear-gradient(135deg, #1ed760 0%, #17c554 100%);
-    padding: 30px 40px;
-    border-radius: 20px;
-    color: #0d0f14;
-    max-width: 700px;
-    margin: 0 auto 60px auto;
-    box-shadow:
-      0 0 30px rgba(30, 215, 96, 0.8);
+    background: #1ed76022;
+    padding: 16px;
+    border-radius: 12px;
+    color: #1ed760;
     text-align: center;
+    font-size: 14px;
+    box-shadow: 0 0 12px #1ed76055;
   }
  
   .one-club h2 {
-    font-size: 2rem;
-    margin-bottom: 15px;
-  }
- 
-  .one-club p {
-    font-size: 1.1rem;
-    line-height: 1.5;
+    margin-bottom: 10px;
+    font-weight: 700;
   }
  
   .one-club button {
-    margin-top: 25px;
+    margin-top: 12px;
+    width: 100%;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 700;
     background: #0d0f14;
     color: #1ed760;
     border: 2px solid #1ed760;
-    padding: 14px 30px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
- 
-  .one-club button:hover {
-    background: #1ed760;
-    color: #0d0f14;
-  }
- 
-  /* ====================================================
-     Поддержка
-  ==================================================== */
-  .support {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #1ed760;
-    color: #0d0f14;
-    padding: 15px 20px;
-    border-radius: 40px;
-    font-weight: 700;
-    font-size: 1rem;
-    box-shadow:
-      0 0 15px rgba(30, 215, 96, 0.8);
+    border-radius: 24px;
     cursor: pointer;
     user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 999;
     transition: background 0.3s ease;
   }
  
-  .support:hover {
+  .one-club button:hover,
+  .one-club button:focus {
+    background: #1ed760;
+    color: #0d0f14;
+    outline: none;
+  }
+ 
+  /* Поддержка */
+  #support-btn {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1ed760;
+    color: #0d0f14;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 0 14px #1ed760aa;
+    cursor: pointer;
+    user-select: none;
+    z-index: 10000;
+    width: calc(100% - 32px);
+    max-width: 420px;
+    text-align: center;
+  }
+ 
+  #support-btn:active {
     background: #17c554;
   }
  
-  .support-icon {
-    width: 24px;
-    height: 24px;
-    background: url('https://cdn-icons-png.flaticon.com/512/561/561127.png') no-repeat center center / contain;
-  }
- 
-  /* ====================================================
-     Анимация загрузки (для приветственного экрана)
-  ==================================================== */
-  .loading-spinner {
-    border: 6px solid #1e1f25;
-    border-top: 6px solid #1ed760;
-    border-radius: 50%;
-    width: 70px;
-    height: 70px;
-    animation: spin 1.5s linear infinite;
-    margin: 40px auto 30px auto;
-  }
- 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
- 
-  /* ====================================================
-     Приветственный экран (overlay)
-  ==================================================== */
+  /* Приветственный экран */
   #welcome-screen {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #0d0f14cc;
-    backdrop-filter: blur(7px);
-    z-index: 9999;
+    inset: 0;
+    background: #0d0f14ee;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 24px;
     color: #1ed760;
     text-align: center;
-    padding: 20px;
+    z-index: 100000;
   }
  
   #welcome-screen h2 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
-    letter-spacing: 5px;
+    font-size: 28px;
+    margin-bottom: 12px;
+    letter-spacing: 3px;
   }
  
   #welcome-screen p {
-    font-size: 1.4rem;
-    max-width: 450px;
-    line-height: 1.5;
+    font-size: 16px;
     margin-bottom: 40px;
+    line-height: 1.4;
+    max-width: 280px;
   }
  
   #welcome-screen button {
     background: #1ed760;
     border: none;
-    padding: 18px 60px;
-    border-radius: 30px;
-    font-size: 1.3rem;
+    color: #0d0f14;
     font-weight: 700;
+    font-size: 18px;
+    padding: 14px 60px;
+    border-radius: 30px;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(30, 215, 96, 0.6);
+    user-select: none;
+    box-shadow: 0 6px 14px #1ed760aa;
     transition: background 0.3s ease;
   }
  
-  #welcome-screen button:hover {
+  #welcome-screen button:hover,
+  #welcome-screen button:focus {
     background: #17c554;
-  }
- 
-  /* ====================================================
-     Медиазапросы — адаптив
-  ==================================================== */
-  @media (max-width: 768px) {
-    nav {
-      gap: 15px;
-    }
- 
-    header h1 {
-      font-size: 1.8rem;
-    }
- 
-    .balance-card {
-      max-width: 90%;
-      padding: 20px;
-    }
- 
-    form {
-      max-width: 90%;
-      padding: 20px;
-    }
- 
-    .one-club {
-      max-width: 90%;
-      padding: 25px;
-    }
- 
-    .transaction-history {
-      max-width: 90%;
-    }
-  }
- 
-  @media (max-width: 400px) {
-    nav {
-      flex-wrap: wrap;
-    }
- 
-    .action-buttons {
-      flex-direction: column;
-      gap: 15px;
-    }
- 
-    .action-buttons button {
-      width: 100%;
-    }
+    outline: none;
   }
 </style>
 </head>
@@ -490,19 +310,10 @@
 <div id="welcome-screen" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-desc">
   <h2 id="welcome-title">Добро пожаловать в ONEX Wallet</h2>
   <p id="welcome-desc">Ваш цифровой кошелек с максимальной безопасностью, простым интерфейсом и эксклюзивным доступом к One Club.</p>
-  <div class="loading-spinner" aria-label="Загрузка..."></div>
   <button id="enter-btn" aria-haspopup="true" aria-controls="app" aria-expanded="false">Войти в кошелек</button>
 </div>
  
-<div class="container" style="display:none;" id="app" role="main" tabindex="-1">
- 
-  <!-- Хедер -->
-  <header>
-    <h1>ONEX Wallet</h1>
-    <div aria-label="Поддержка" title="Поддержка">@onenova1</div>
-  </header>
- 
-  <!-- Навигация -->
+<div id="app" role="main" tabindex="-1" style="display:none;">
   <nav role="tablist" aria-label="Основные вкладки кошелька">
     <button role="tab" aria-selected="true" tabindex="0" class="active" data-tab="balance" id="tab-balance" aria-controls="balance">Баланс</button>
     <button role="tab" aria-selected="false" tabindex="-1" data-tab="send" id="tab-send" aria-controls="send">Отправить/Пополнить</button>
@@ -510,23 +321,18 @@
     <button role="tab" aria-selected="false" tabindex="-1" data-tab="oneclub" id="tab-oneclub" aria-controls="oneclub">One Club</button>
   </nav>
  
-  <!-- Основной контент -->
-  <main>
- 
-    <!-- Вкладка Баланс -->
+  <main style="padding-bottom: 80px;">
     <section id="balance" class="tab-content" role="tabpanel" aria-labelledby="tab-balance" tabindex="0" style="display:block;">
       <div class="balance-card" aria-live="polite" aria-atomic="true">
         <h2>Текущий баланс</h2>
         <div class="balance-amount" id="balance-amount">0.000 ONEX</div>
         <div class="balance-currency">ONEX Token</div>
       </div>
- 
       <div class="chart-container">
         <canvas id="balance-chart" aria-label="График баланса" role="img"></canvas>
       </div>
     </section>
  
-    <!-- Вкладка Отправить/Пополнить -->
     <section id="send" class="tab-content" role="tabpanel" aria-labelledby="tab-send" tabindex="0" style="display:none;">
       <form id="send-form" aria-label="Форма отправки ONEX">
         <label for="recipient">Адрес получателя:</label>
@@ -538,50 +344,43 @@
         <button type="submit" aria-live="polite" aria-atomic="true">Отправить</button>
       </form>
  
-      <form id="topup-form" style="margin-top: 40px;" aria-label="Форма пополнения баланса">
+      <form id="topup-form" aria-label="Форма пополнения баланса">
         <label for="topup-amount">Пополнить баланс (ONEX):</label>
         <input type="number" id="topup-amount" name="topup-amount" placeholder="0.000" min="0.001" step="0.001" required />
  
-       
         <button type="submit" aria-live="polite" aria-atomic="true">Пополнить</button>
       </form>
     </section>
  
-    <!-- Вкладка История -->
     <section id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history" tabindex="0" style="display:none;">
       <div class="transaction-history">
-        <h3>История транзакций</h3>
         <ul class="transaction-list" id="transaction-list" aria-live="polite" aria-relevant="additions removals">
           <li style="text-align:center; color:#777;">История пуста</li>
         </ul>
       </div>
     </section>
  
-    <!-- Вкладка One Club -->
     <section id="oneclub" class="tab-content" role="tabpanel" aria-labelledby="tab-oneclub" tabindex="0" style="display:none;">
       <div class="one-club" role="region" aria-label="Эксклюзивный клуб One Club">
+        
         <h2>One Club — Эксклюзивный доступ</h2>
-        <p>Присоединяйтесь к нашему клубу One Club и получите уникальные бонусы, ранний доступ к новым функциям, специальные предложения и многое другое.</p>
+        <p>Присоединяйтесь к нашему клубу One Club и получите уникальные бонусы, ранний доступ к новым функциям и специальные предложения.</p>
         <button id="join-oneclub-btn" aria-describedby="oneclub-desc">Присоединиться</button>
       </div>
     </section>
- 
   </main>
 </div>
  
 <!-- Кнопка поддержки -->
-<div class="support" id="support-btn" role="button" tabindex="0" aria-label="Скопировать юзертаг поддержки @onenova1">
-  <span class="support-icon" aria-hidden="true"></span>
+<div id="support-btn" role="button" tabindex="0" aria-label="Скопировать юзертаг поддержки @onenova1">
   Поддержка: @onenova1
 </div>
  
-<!-- Подключение Chart.js CDN -->
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  
 <script>
-  // ================================================================
-  // ONEX Wallet — JavaScript логика
-  // ================================================================
+  // ONEX Wallet Mini App JS
  
   const state = {
     balance: 1000.0,
@@ -634,12 +433,9 @@
       const li = document.createElement('li');
       li.innerHTML = `
         <span class="transaction-type">${tx.type}</span>
-        <span class="transaction-amount">${tx.amount.toFixed(3)} ONEX</span>
-        <span class="transaction-date">${tx.date}</span>
+        <span> — ${tx.amount.toFixed(3)} ONEX</span><br/>
+        <small>${tx.date}${tx.address ? ', Адрес: ' + tx.address : ''}</small>
       `;
-      if (tx.address) {
-        li.innerHTML += `<br/><small>Адрес: ${tx.address}</small>`;
-      }
       transactionListEl.appendChild(li);
     });
   }
@@ -651,6 +447,7 @@
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(now.getDate() - i);
+      // Для примера делаем колебания баланса
       let bal = state.balance + (Math.random() - 0.5) * 100;
       bal = bal < 0 ? 0 : bal;
       state.chartData.push({ date: date.toLocaleDateString(), balance: bal });
@@ -668,8 +465,8 @@
             backgroundColor: 'rgba(30, 215, 96, 0.2)',
             fill: true,
             tension: 0.3,
-            pointRadius: 5,
-            pointHoverRadius: 7,
+            pointRadius: 4,
+            pointHoverRadius: 6,
           }]
         },
         options: {
@@ -736,21 +533,21 @@
     const recipient = sendForm.recipient.value.trim();
     const amount = parseFloat(sendForm.amount.value);
     if (!recipient) {
-      alert('Пожалуйста, введите адрес получателя.');
+      alert('Введите адрес получателя.');
       return;
     }
     if (isNaN(amount) || amount <= 0) {
-      alert('Введите корректную сумму для отправки.');
+      alert('Введите корректную сумму.');
       return;
     }
     if (amount > state.balance) {
-      alert('Недостаточно средств для отправки.');
+      alert('Недостаточно средств.');
       return;
     }
     state.balance -= amount;
     updateBalanceUI();
     addTransaction('Отправлено', amount, recipient);
-    alert(`Отправлено ${amount.toFixed(3)} ONEX на адрес ${recipient}`);
+    alert(`Отправлено ${amount.toFixed(3)} ONEX на ${recipient}`);
     sendForm.reset();
     updateChart();
   });
@@ -759,7 +556,7 @@
     e.preventDefault();
     const amount = parseFloat(topupForm['topup-amount'].value);
     if (isNaN(amount) || amount <= 0) {
-      alert('Введите корректную сумму для пополнения.');
+      alert('Введите корректную сумму пополнения.');
       return;
     }
     state.balance += amount;
@@ -776,25 +573,21 @@
  
   supportBtn.addEventListener('click', () => {
     navigator.clipboard.writeText('@onenova1').then(() => {
-      alert('Юзертаг поддержки @onenova1 скопирован в буфер обмена!');
-    }, () => {
-      alert('Не удалось скопировать юзертаг. Попробуйте вручную: @onenova1');
+      alert('Юзертаг поддержки @onenova1 скопирован!');
+    }).catch(() => {
+      alert('Не удалось скопировать. Используйте @onenova1 вручную.');
     });
   });
  
   enterBtn.addEventListener('click', () => {
     welcomeScreen.style.display = 'none';
-    app.style.display = 'block';
+    app.style.display = 'flex';
     updateBalanceUI();
     updateChart();
     renderTransactions();
     app.focus();
   });
  
-  // Автоматический вход через 7 секунд (опционально)
-  // setTimeout(() => enterBtn.click(), 7000);
- 
 </script>
- 
 </body>
 </html>
